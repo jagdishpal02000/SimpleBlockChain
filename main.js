@@ -7,18 +7,34 @@ class Block {
     this.data = data;
     this.previosHash = previosHash;
     this.hash = this.calculateHash();
+    this.nonce = 0;
   }
 
   calculateHash() {
     return SHA256(
-      this.index + this.timestamp + JSON.stringify(this.data) + this.previosHash
+      this.index +
+        this.timestamp +
+        JSON.stringify(this.data) +
+        this.nonce +
+        this.previosHash
     ).toString();
+  }
+
+  minBlock(difficulty) {
+    while (
+      this.hash.substring(0, difficulty) !== Array(difficulty + 1).join(0)
+    ) {
+      this.nonce++;
+      this.hash = this.calculateHash();
+    }
+    console.log("Block mined  " + this.hash);
   }
 }
 
 class BlockChain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
+    this.difficulty = 2;
   }
   createGenesisBlock() {
     return new Block(0, "29/03/2022", "Genesis Block", "0");
@@ -30,7 +46,7 @@ class BlockChain {
 
   addBlock(newBlock) {
     newBlock.previosHash = this.getLatestBlock().hash;
-    newBlock.hash = newBlock.calculateHash();
+    newBlock.minBlock(this.difficulty);
     this.chain.push(newBlock);
   }
 
@@ -52,9 +68,13 @@ class BlockChain {
 }
 
 let JagdishCoin = new BlockChain();
+
+console.log("Mining The First Block");
 JagdishCoin.addBlock(new Block(1, "10/04/2022", { amount: 5 }));
+
+console.log("Mining The Second Block");
 JagdishCoin.addBlock(new Block(2, "11/04/2022", { amount: 10 }));
-JagdishCoin.addBlock(new Block(3, "12/04/2022", { amount: 50 }));
+
 console.log(JagdishCoin.chain);
 
 // let's try to temper our a node
